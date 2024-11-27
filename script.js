@@ -120,33 +120,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     cell.classList.add('cell-fade-out');
 
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         cell.innerHTML = '';
 
-                        const container = document.createElement('div');
-                        container.style.cssText = `
-                            width: 56px;
-                            height: 56px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            position: relative;
-                        `;
+                        try {
+                            const response = await fetch('img/stars.svg');
+                            const svgText = await response.text();
 
-                        const newImg = document.createElement('img');
-                        newImg.setAttribute('width', '40');
-                        newImg.setAttribute('height', '40');
-                        newImg.style.opacity = '0';
-                        newImg.style.transform = 'scale(0)';
-                        newImg.src = 'img/stars.svg';
-                        newImg.classList.add('star-animation');
-                        container.appendChild(newImg);
-                        cell.appendChild(container);
+                            const container = document.createElement('div');
+                            container.style.cssText = `
+                                width: 56px;
+                                height: 56px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                position: relative;
+                            `;
 
-                        setTimeout(() => {
-                            newImg.classList.add('fade-in');
-                            reloadSVG(newImg);
-                        }, 50);
+                            container.innerHTML = svgText;
+                            cell.appendChild(container);
+
+                            const svgElement = container.querySelector('svg');
+                            if (svgElement) {
+                                svgElement.style.cssText = `
+                                    width: 56px;
+                                    height: 56px;
+                                    max-width: 100%;
+                                    max-height: 100%;
+                                    display: block;
+                                `;
+
+                                const originalViewBox = svgElement.getAttribute('viewBox');
+                                if (!originalViewBox) {
+                                    const width = svgElement.getAttribute('width') || '100';
+                                    const height = svgElement.getAttribute('height') || '100';
+                                    svgElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                                }
+
+                                svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                                svgElement.classList.add('star-animation');
+                                svgElement.style.opacity = '0';
+                                svgElement.style.transform = 'scale(0)';
+
+                                requestAnimationFrame(() => {
+                                    svgElement.classList.add('fade-in');
+                                    reloadSVG(svgElement);
+                                });
+                            }
+                        } catch (error) {
+                            const newImg = document.createElement('img');
+                            newImg.style.cssText = `
+                                width: 56px;
+                                height: 56px;
+                                display: block;
+                            `;
+                            newImg.src = 'img/stars.svg';
+                            newImg.style.opacity = '0';
+                            newImg.style.transform = 'scale(0)';
+                            cell.appendChild(newImg);
+                            newImg.classList.add('star-animation');
+
+                            requestAnimationFrame(() => {
+                                newImg.classList.add('fade-in');
+                            });
+                        }
 
                         cell.classList.remove('cell-fade-out');
                     }, 500);
